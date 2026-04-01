@@ -1,9 +1,481 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>My GitHub Page</title>
-  </head>
-  <body>
-    <h1>Hello GitHub Pages!</h1>
-  </body>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#fff5ed">
+  <title>今日食堂 Roll - 旗舰精致版</title>
+  <style>
+    :root {
+      --bg: #fffbf9;
+      --panel: rgba(255, 255, 255, 0.85);
+      --text: #4a3733;
+      --text-soft: #8d7a71;
+      --accent: #ff8e6e;
+      --accent-deep: #eb6841;
+      --accent-soft: #ffdcca;
+      /* 新增：仪式感按钮配色 */
+      --confirm-gradient: linear-gradient(135deg, #ffd3a5 0%, #fd6585 100%);
+      --confirm-shadow: rgba(253, 101, 133, 0.3);
+      
+      --radius-xl: 32px;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --shadow-sm: 0 4px 12px rgba(165, 120, 100, 0.08);
+      --shadow-lg: 0 20px 40px rgba(165, 120, 100, 0.15);
+    }
+
+    * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #fff5ed;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(255, 142, 110, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(255, 231, 154, 0.2) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(181, 234, 215, 0.15) 0px, transparent 50%);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+      line-height: 1.5;
+      padding-bottom: 40px;
+    }
+
+    /* 背景装饰动画 */
+    .blob {
+      position: fixed;
+      width: 300px;
+      height: 300px;
+      background: linear-gradient(135deg, var(--accent-soft), #fff);
+      filter: blur(80px);
+      z-index: -1;
+      border-radius: 50%;
+      opacity: 0.6;
+      animation: move 20s infinite alternate;
+    }
+
+    @keyframes move {
+      from { transform: translate(-10%, -10%); }
+      to { transform: translate(20%, 20%); }
+    }
+
+    .app {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .hero {
+      padding: 40px 20px 24px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin: 0;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #4a3733 0%, #eb6841 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--text-soft);
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
+    .date-badge {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 6px 16px;
+      background: white;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* 结果展示区 */
+    .result-card {
+      background: var(--panel);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius-xl);
+      padding: 32px 24px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 24px;
+    }
+
+    .result-name {
+      font-size: 42px;
+      font-weight: 900;
+      margin: 16px 0;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .result-meta {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .tag-zone {
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      background: var(--accent);
+    }
+
+    .result-copy {
+      font-size: 15px;
+      color: var(--text-soft);
+      font-style: italic;
+      margin: 0 0 28px;
+    }
+
+    /* 按钮基础 */
+    button {
+      border: none;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+      color: white;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      font-size: 16px;
+      box-shadow: 0 8px 20px rgba(235, 104, 65, 0.3);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--text);
+      padding: 16px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* 精致的确认按钮 */
+    .btn-confirm {
+      width: 100%;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: var(--confirm-gradient);
+      color: white;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      box-shadow: 0 10px 20px var(--confirm-shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-confirm:hover { transform: translateY(-2px); filter: brightness(1.05); }
+    .btn-confirm:active { transform: scale(0.96); }
+
+    /* 历史记录部分 */
+    .section-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+      margin: 32px 0 16px 8px;
+      display: flex;
+      align-items: center; gap: 6px;
+    }
+    .section-title::before { content: ""; width: 4px; height: 14px; background: var(--accent); border-radius: 4px; }
+
+    .scope-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .btn-scope { background: rgba(255, 255, 255, 0.5); padding: 10px; border-radius: 12px; font-size: 13px; font-weight: 600; color: var(--text-soft); }
+    .btn-scope.active { background: white; color: var(--accent-deep); box-shadow: var(--shadow-sm); border: 1px solid var(--accent-soft); }
+
+    .add-box { background: white; padding: 8px; border-radius: 20px; display: flex; gap: 8px; box-shadow: var(--shadow-sm); }
+    .add-box input { flex: 1; border: none; outline: none; padding: 10px; font-weight: 500; }
+    .add-box select { border: none; outline: none; font-weight: 700; color: var(--accent-deep); background: transparent; cursor: pointer; }
+    .btn-add { background: var(--text); color: white; width: 44px; height: 44px; border-radius: 14px; font-size: 20px; }
+
+    .pool-grid { display: grid; gap: 16px; }
+    .zone-card { background: rgba(255, 255, 255, 0.4); border-radius: var(--radius-lg); padding: 16px; border: 1px solid rgba(255,255,255,0.6); }
+    .chip-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .chip { padding: 6px 12px; background: white; border-radius: 99px; font-size: 13px; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+    .chip.custom { background: #fff0eb; color: var(--accent-deep); }
+    .btn-del { background: none; color: #ccc; padding: 0; font-size: 16px; }
+
+    .history-card { background: rgba(255, 255, 255, 0.6); border-radius: var(--radius-lg); padding: 16px; }
+    .history-item { 
+      background: white; margin-bottom: 8px; padding: 12px 16px; border-radius: 16px;
+      display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .history-info { font-size: 14px; }
+    .history-time { font-size: 11px; color: var(--text-soft); margin-top: 2px; }
+    .btn-clear { font-size: 12px; color: var(--text-soft); background: white; padding: 6px 12px; border-radius: 8px; margin-left: auto; }
+
+    #toast {
+      position: fixed; left: 50%; top: 10%; transform: translateX(-50%) translateY(-20px);
+      background: rgba(0,0,0,0.8); color: white; padding: 10px 24px; border-radius: 99px;
+      font-size: 14px; z-index: 100; opacity: 0; transition: all 0.3s; pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .animate-roll { animation: roll-in 0.3s ease-out forwards; }
+    @keyframes roll-in {
+      0% { opacity: 0; transform: translateY(10px); filter: blur(5px); }
+      100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+
+    @media (max-width: 480px) {
+      .btn-group { grid-template-columns: 1fr; }
+      .scope-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="blob"></div>
+  <div class="app">
+    <header class="hero">
+      <h1>今日食堂 Roll</h1>
+      <p class="subtitle">让随机数决定你的午餐</p>
+      <div class="date-badge" id="dateBadge">加载中...</div>
+    </header>
+
+    <main>
+      <section class="result-card">
+        <div class="result-meta">
+          <span class="tag-zone" id="resultZone">准备中</span>
+          <span id="resultMode" style="font-size: 12px; font-weight: 600; color: var(--text-soft)">Wait</span>
+        </div>
+        <div class="result-name" id="resultName">点击下方开 Roll</div>
+        <p class="result-copy" id="resultCopy">不知道吃什么？那就抽个奖吧！</p>
+        
+        <div class="btn-group">
+          <button class="btn-primary" id="dailyBtn"><span>✨</span> 今日一键</button>
+          <button class="btn-secondary" id="rerollBtn"><span>🎲</span> 换个心情</button>
+        </div>
+        <button class="btn-confirm" id="confirmBtn">就决定吃这个了</button>
+      </section>
+
+      <h2 class="section-title">选择范围</h2>
+      <div class="scope-grid">
+        <button class="btn-scope active" data-scope="ALL">全选</button>
+        <button class="btn-scope" data-scope="D">D区</button>
+        <button class="btn-scope" data-scope="E">E区</button>
+        <button class="btn-scope" data-scope="G">G区</button>
+      </div>
+
+      <h2 class="section-title">添加新口味</h2>
+      <form id="addForm" class="add-box">
+        <select id="zoneInput">
+          <option value="D">D区</option>
+          <option value="E">E区</option>
+          <option value="G">G区</option>
+        </select>
+        <input id="nameInput" type="text" placeholder="输入档口名字..." maxlength="15">
+        <button class="btn-add" type="submit">+</button>
+      </form>
+
+      <h2 class="section-title">当前菜单池</h2>
+      <div class="pool-grid" id="poolCards"></div>
+
+      <div style="display: flex; align-items: center; margin-top: 32px;">
+        <h2 class="section-title" style="margin: 0;">最终吃了什么</h2>
+        <button class="btn-clear" id="clearHistoryBtn">清空记录</button>
+      </div>
+      <section class="history-card" style="margin-top: 16px;">
+        <div id="historyList"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    const DEFAULT_POOL = {
+      D: ["温暖你的猪", "麻辣烫", "小杨生煎", "虾滑", "韩式拌饭"],
+      E: ["百味鸡", "酸菜鱼", "寿喜锅"],
+      G: ["肯德基", "淮南牛肉汤", "麻辣烫", "烤鱼"]
+    };
+
+    const STORAGE_KEY = "canteen-roll-v2";
+    const HISTORY_KEY = "canteen-roll-history-v2";
+    const RESULT_LINES = ["命中注定！", "胃口大开！", "出发吧！", "好评推荐！", "试试看！"];
+
+    let state = {
+      scope: "ALL",
+      customPool: JSON.parse(localStorage.getItem(STORAGE_KEY)) || { D: [], E: [], G: [] },
+      history: JSON.parse(localStorage.getItem(HISTORY_KEY)) || [],
+      currentPick: null
+    };
+
+    function init() {
+      renderDate();
+      renderPool();
+      renderHistory();
+      bindEvents();
+      doRoll(true);
+    }
+
+    function renderDate() {
+      const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+      const now = new Date();
+      document.getElementById("dateBadge").textContent = `${now.getMonth()+1}月${now.getDate()}日 · ${days[now.getDay()]}`;
+    }
+
+    function bindEvents() {
+      document.getElementById("dailyBtn").onclick = () => doRoll(true);
+      document.getElementById("rerollBtn").onclick = () => doRoll(false);
+      document.getElementById("confirmBtn").onclick = confirmPick;
+      document.getElementById("clearHistoryBtn").onclick = clearHistory;
+      
+      document.querySelectorAll(".btn-scope").forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll(".btn-scope").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          state.scope = btn.dataset.scope;
+          doRoll(true);
+        };
+      });
+
+      document.getElementById("addForm").onsubmit = (e) => {
+        e.preventDefault();
+        const zone = document.getElementById("zoneInput").value;
+        const name = document.getElementById("nameInput").value.trim();
+        if(!name) return showToast("写个名字呀~");
+        state.customPool[zone].push(name);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.customPool));
+        document.getElementById("nameInput").value = "";
+        renderPool();
+        showToast("已加入池子！");
+      };
+    }
+
+    function doRoll(isDaily) {
+      const options = [];
+      const zones = state.scope === "ALL" ? ["D", "E", "G"] : [state.scope];
+      zones.forEach(z => {
+        [...DEFAULT_POOL[z], ...state.customPool[z]].forEach(name => options.push({ zone: z, name }));
+      });
+
+      const el = document.getElementById("resultName");
+      el.classList.remove("animate-roll");
+      void el.offsetWidth;
+
+      let pick;
+      if (isDaily) {
+        const seed = new Date().toLocaleDateString() + state.scope;
+        let hash = 0;
+        for (let i = 0; i < seed.length; i++) hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+        pick = options[Math.abs(hash) % options.length];
+      } else {
+        pick = options[Math.floor(Math.random() * options.length)];
+      }
+
+      state.currentPick = pick;
+      el.textContent = pick.name;
+      el.classList.add("animate-roll");
+      document.getElementById("resultZone").textContent = pick.zone + " 区";
+      document.getElementById("resultMode").textContent = isDaily ? "今日推荐" : "今天吃什么?";
+      document.getElementById("resultCopy").textContent = RESULT_LINES[Math.floor(Math.random()*RESULT_LINES.length)];
+    }
+
+    function confirmPick() {
+      if (!state.currentPick) return showToast("先抽一个吧！");
+      
+      const now = new Date();
+      const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const entry = { ...state.currentPick, time: timeStr, id: Date.now() };
+      
+      state.history.unshift(entry);
+      state.history = state.history.slice(0, 10);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
+      renderHistory();
+      showToast(`✅ 决定了！今天就吃 ${entry.name}`);
+    }
+
+    function renderHistory() {
+      const list = document.getElementById("historyList");
+      if(state.history.length === 0) {
+        list.innerHTML = `<p style="text-align:center; color:#ccc; font-size:13px;">暂无记录</p>`;
+        return;
+      }
+      list.innerHTML = state.history.map(h => `
+        <div class="history-item">
+          <div class="history-info">
+            <strong>${h.name}</strong>
+            <div class="history-time">${h.zone}区 · ${h.time}</div>
+          </div>
+          <span style="font-size:18px;">😋</span>
+        </div>
+      `).join('');
+    }
+
+    function clearHistory() {
+      state.history = [];
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
+      renderHistory();
+      showToast("记录已清空");
+    }
+
+    function renderPool() {
+      const container = document.getElementById("poolCards");
+      container.innerHTML = ["D", "E", "G"].map(zone => {
+        const items = [...DEFAULT_POOL[zone], ...state.customPool[zone]];
+        return `
+          <div class="zone-card">
+            <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:800;">
+              <span>${zone}区</span><span>${items.length}个</span>
+            </div>
+            <div class="chip-group">
+              ${items.map(name => {
+                const isCustom = state.customPool[zone].includes(name);
+                return `<div class="chip ${isCustom?'custom':''}">
+                  ${name}${isCustom ? `<button class="btn-del" onclick="removeCustom('${zone}','${name}')">×</button>`:''}
+                </div>`;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function removeCustom(zone, name) {
+      state.customPool[zone] = state.customPool[zone].filter(n => n !== name);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.customPool));
+      renderPool();
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg; t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2000);
+    }
+
+    init();
+  </script>
+</body>
 </html>
