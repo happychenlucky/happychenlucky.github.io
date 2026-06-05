@@ -657,8 +657,8 @@
 
         for (let index = 0; index < pairCount; index += 1) {
           const image = pool[index % pool.length];
-          deck.push({ id: `${index}-a`, matchId: index, image, matched: false });
-          deck.push({ id: `${index}-b`, matchId: index, image, matched: false });
+          deck.push({ id: `${image}-a`, pairId: image, image, matched: false });
+          deck.push({ id: `${image}-b`, pairId: image, image, matched: false });
         }
 
         return shuffle(deck);
@@ -713,7 +713,7 @@
         const second = state.cards[secondIndex];
         renderStats();
 
-        if (first.matchId === second.matchId) {
+        if (first.pairId === second.pairId) {
           markPairMatched(firstIndex, secondIndex);
           return;
         }
