@@ -4,29 +4,970 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Minerva Match</title>
-    <meta http-equiv="refresh" content="0; url=./minerva-match/" />
+    <link rel="preload" href="res/logo.png" as="image" fetchpriority="high" />
+    <link rel="prefetch" href="res/nice.png" as="image" />
     <style>
+      :root {
+        color-scheme: light;
+        --paper: #fff6dc;
+        --paper-2: #fffdf6;
+        --ink: #4a3828;
+        --muted: #9a7959;
+        --line: #efd79c;
+        --coral: #ff806f;
+        --gold: #ffd34d;
+        --blue: #8cc8e9;
+        --shadow: 0 10px 24px rgba(128, 89, 42, 0.12);
+        --card-radius: 8px;
+        --game-width: min(430px, 100%);
+        --panel-width: min(430px, 100%);
+        --board-size: 280px;
+        --ui-scale: 1;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
       html,
       body {
         height: 100%;
-        margin: 0;
+        overflow: hidden;
       }
 
       body {
-        display: grid;
-        place-items: center;
-        background: linear-gradient(180deg, #fff8e6 0%, #ffeab8 100%);
-        color: #4a3828;
+        margin: 0;
+        width: 100%;
+        color: var(--ink);
         font-family: "Avenir Next", "PingFang SC", "Hiragino Sans GB", sans-serif;
+        background: linear-gradient(180deg, #fff8e6 0%, #ffeab8 100%);
       }
 
-      a {
-        color: inherit;
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
+      .app {
+        width: var(--game-width);
+        max-width: 100%;
+        height: 100svh;
+        height: 100dvh;
+        margin: 0 auto;
+        padding: 6px 8px 8px;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 6px;
+        align-items: start;
+      }
+
+      .topbar {
+        display: grid;
+        width: min(100%, var(--panel-width));
+        min-width: 0;
+        max-width: 100%;
+        justify-self: center;
+        gap: 6px;
+        padding: 6px;
+        border-radius: 8px;
+        background: transparent;
+        box-shadow: none;
+      }
+
+      .playbar {
+        display: grid;
+        grid-template-columns: 2fr 3fr;
+        gap: 6px;
+        min-width: 0;
+        align-items: stretch;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 7px;
+      }
+
+      .mark {
+        width: calc(42px * var(--ui-scale));
+        height: calc(42px * var(--ui-scale));
+        border: 0;
+        border-radius: 0;
+        background: url("res/logo.png") center / contain no-repeat;
+        box-shadow: none;
+      }
+
+      h1 {
+        margin: 0;
+        font-family: "Avenir Next", "PingFang SC", "Hiragino Sans GB", sans-serif;
+        font-size: calc(1.45rem * var(--ui-scale));
+        line-height: 1;
+        letter-spacing: 0;
+        color: var(--ink);
+      }
+
+      .subtitle {
+        display: none;
+      }
+
+      .status-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: calc(6px * var(--ui-scale));
+        min-width: 0;
+      }
+
+      .meter {
+        border: 0;
+        background: rgba(255, 236, 183, 0.42);
+        padding: calc(6px * var(--ui-scale)) calc(5px * var(--ui-scale)) calc(5px * var(--ui-scale));
+        border-radius: 8px;
+        min-width: 0;
+        line-height: 1.2;
+        text-align: center;
+      }
+
+      .meter span {
+        display: block;
+        color: var(--muted);
+        font-size: calc(0.62rem * var(--ui-scale));
+      }
+
+      .meter strong {
+        display: block;
+        margin-top: 1px;
+        font-size: calc(0.9rem * var(--ui-scale));
+        color: #4a3828;
+      }
+
+      .board-wrap {
+        position: relative;
+        width: min(100%, var(--panel-width));
+        min-width: 0;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 6px;
+        border: 1px solid rgba(239, 215, 156, 0.9);
+        border-radius: 8px;
+        background: rgba(255, 253, 246, 0.72);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .board-wrap::before {
+        display: none;
+      }
+
+      .board {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+        grid-template-rows: repeat(var(--cols), minmax(0, 1fr));
+        width: var(--board-size);
+        height: var(--board-size);
+        margin: 0 auto;
+        gap: 5px;
+        z-index: 1;
+      }
+
+      .card {
+        position: relative;
+        min-width: 0;
+        min-height: 0;
+        border-radius: var(--card-radius);
+        perspective: 900px;
+      }
+
+      .card-button {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        background: transparent;
+        border-radius: var(--card-radius);
+        transform-style: preserve-3d;
+        transition: transform 260ms ease, filter 160ms ease;
+      }
+
+      .card:not(.matched):not(.flipped) .card-button:hover {
+        filter: brightness(1.035) saturate(1.04);
+        transform: translateY(-2px);
+      }
+
+      .card.flipped .card-button,
+      .card.matched .card-button {
+        transform: rotateY(180deg);
+      }
+
+      .card-face {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        border-radius: var(--card-radius);
+        backface-visibility: hidden;
+        overflow: hidden;
+      }
+
+      .card-back {
+        border: 2px solid #ffffff;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.32) 25%, transparent 25% 50%, rgba(255, 255, 255, 0.32) 50% 75%, transparent 75%),
+          radial-gradient(circle at 16% 18%, rgba(255, 255, 255, 0.5) 0 5px, transparent 6px),
+          radial-gradient(circle at 82% 78%, rgba(255, 255, 255, 0.35) 0 7px, transparent 8px),
+          linear-gradient(180deg, #ffe987, #ffc943);
+        background-size: 18px 18px, auto, auto, auto;
+        box-shadow: inset 0 -4px 0 rgba(170, 111, 28, 0.08);
+      }
+
+      .card-back::after {
+        content: "";
+        width: 46%;
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: url("res/logo.png") center / contain no-repeat;
+        box-shadow: 0 5px 12px rgba(128, 89, 42, 0.12);
+      }
+
+      .card-back::before {
+        content: "✦";
+        position: absolute;
+        top: 8%;
+        right: 10%;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: clamp(0.8rem, 3vw, 1.4rem);
+        line-height: 1;
+      }
+
+      .card-front {
+        border: 2px solid #ffffff;
+        background: var(--paper-2);
+        transform: rotateY(180deg);
+      }
+
+      .card-front img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 6px;
+        display: block;
+      }
+
+      .card.matched .card-front {
+        border-color: #ffd34d;
+        box-shadow: 0 0 0 2px rgba(255, 211, 77, 0.35);
+      }
+
+      .control {
+        display: grid;
+        gap: 0;
+        min-width: 0;
+      }
+
+      .control label {
+        display: none;
+      }
+
+      .segmented {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+        min-width: 0;
+      }
+
+      .chip,
+      .action {
+        min-height: calc(30px * var(--ui-scale));
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.76);
+        color: var(--ink);
+        display: grid;
+        place-items: center;
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-align: center;
+        font-size: calc(0.84rem * var(--ui-scale));
         font-weight: 700;
+        transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+      }
+
+      .chip:hover,
+      .action:hover {
+        transform: translateY(-1px);
+        border-color: var(--coral);
+      }
+
+      .chip.active {
+        color: var(--ink);
+        background: var(--gold);
+        border-color: #e8b934;
+      }
+
+      .action.primary {
+        color: #ffffff;
+        background: var(--coral);
+        border-color: var(--coral);
+        font-weight: 700;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 5px;
+        min-width: 0;
+      }
+
+      .win-layer {
+        position: absolute;
+        inset: 0;
+        display: none;
+        place-items: center;
+        z-index: 5;
+        background: rgba(255, 248, 230, 0.84);
+        backdrop-filter: blur(5px);
+      }
+
+      .win-layer.show {
+        display: grid;
+      }
+
+      .win-box {
+        width: min(calc(var(--board-size) - 24px), calc(280px * var(--ui-scale)), calc(100% - 24px));
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: calc(16px * var(--ui-scale));
+        background: var(--paper-2);
+        box-shadow: 0 12px 28px rgba(128, 89, 42, 0.18);
+        text-align: center;
+      }
+
+      .win-image {
+        width: min(calc(140px * var(--ui-scale)), 58%);
+        aspect-ratio: 1;
+        margin: 0 auto calc(8px * var(--ui-scale));
+        object-fit: contain;
+        display: block;
+      }
+
+      .win-box h2 {
+        margin: 0 0 6px;
+        font-family: "Avenir Next", "PingFang SC", "Hiragino Sans GB", sans-serif;
+        font-size: calc(1.8rem * var(--ui-scale));
+        color: var(--coral);
+      }
+
+      .win-box p {
+        margin: 0 0 calc(14px * var(--ui-scale));
+        color: var(--muted);
+        font-size: calc(0.95rem * var(--ui-scale));
+      }
+
+      .win-box .action {
+        width: min(calc(190px * var(--ui-scale)), 100%);
+        margin: 0 auto;
+      }
+
+      .burst {
+        position: fixed;
+        width: 9px;
+        height: 18px;
+        pointer-events: none;
+        opacity: 0;
+        animation: fall 900ms ease-out forwards;
+      }
+
+      @keyframes fall {
+        0% {
+          opacity: 1;
+          transform: translate3d(0, 0, 0) rotate(0deg);
+        }
+        100% {
+          opacity: 0;
+          transform: translate3d(var(--dx), var(--dy), 0) rotate(280deg);
+        }
+      }
+
+      @media (max-width: 640px) {
+        .app {
+          width: 100%;
+          padding: 6px 8px 8px;
+        }
+
+        .mark {
+          width: calc(40px * var(--ui-scale));
+          height: calc(40px * var(--ui-scale));
+        }
+
+        h1 {
+          font-size: calc(1.35rem * var(--ui-scale));
+        }
+
+        .board-wrap {
+          padding: 6px;
+        }
+
+        .board {
+          gap: 4px;
+        }
+      }
+
+      @media (min-width: 760px) {
+        .app {
+          width: var(--game-width);
+          padding: calc(16px * var(--ui-scale));
+          grid-template-columns: 1fr;
+          grid-template-rows: auto minmax(0, 1fr);
+          gap: calc(12px * var(--ui-scale));
+          align-items: start;
+          background: linear-gradient(180deg, #fff8e7 0%, #ffe8ad 100%);
+        }
+
+        .topbar {
+          width: min(100%, var(--panel-width));
+          gap: calc(12px * var(--ui-scale));
+          padding: calc(14px * var(--ui-scale));
+          background: rgba(255, 253, 246, 0.72);
+        }
+
+        .brand {
+          justify-content: flex-start;
+          gap: calc(10px * var(--ui-scale));
+        }
+
+        .mark {
+          width: calc(62px * var(--ui-scale));
+          height: calc(62px * var(--ui-scale));
+        }
+
+        h1 {
+          font-size: calc(2rem * var(--ui-scale));
+        }
+
+        .status-strip {
+          grid-template-columns: repeat(4, 1fr);
+          gap: calc(10px * var(--ui-scale));
+        }
+
+        .meter {
+          padding: calc(10px * var(--ui-scale)) calc(8px * var(--ui-scale));
+        }
+
+        .meter span {
+          font-size: calc(0.78rem * var(--ui-scale));
+        }
+
+        .meter strong {
+          font-size: calc(1.2rem * var(--ui-scale));
+        }
+
+        .playbar {
+          grid-template-columns: 2fr 3fr;
+          gap: calc(10px * var(--ui-scale));
+        }
+
+        .actions {
+          gap: calc(8px * var(--ui-scale));
+        }
+
+        .segmented {
+          gap: calc(8px * var(--ui-scale));
+        }
+
+        .chip,
+        .action {
+          min-height: calc(40px * var(--ui-scale));
+          font-size: calc(0.98rem * var(--ui-scale));
+        }
+
+        .board-wrap {
+          width: min(100%, var(--panel-width));
+          justify-self: center;
+          padding: calc(10px * var(--ui-scale));
+        }
+
+        .board {
+          width: var(--board-size);
+          height: var(--board-size);
+          margin: 0 auto;
+        }
+
+        .board {
+          gap: calc(8px * var(--ui-scale));
+        }
       }
     </style>
   </head>
   <body>
-    <a href="./minerva-match/">进入 Minerva Match</a>
+    <main class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="mark" aria-hidden="true"></div>
+          <div>
+            <h1>翻翻乐</h1>
+            <p class="subtitle">翻开两张牌，找到相同图片。越少步数越漂亮。</p>
+          </div>
+        </div>
+
+        <section class="status-strip" aria-label="游戏数据">
+          <div class="meter">
+            <span>时间</span>
+            <strong id="time">00:00</strong>
+          </div>
+          <div class="meter">
+            <span>步数</span>
+            <strong id="moves">0</strong>
+          </div>
+          <div class="meter">
+            <span>配对</span>
+            <strong id="pairs">0/2</strong>
+          </div>
+          <div class="meter">
+            <span>最佳</span>
+            <strong id="best">--</strong>
+          </div>
+        </section>
+
+        <section class="playbar" aria-label="游戏控制">
+          <div class="actions">
+            <button class="action primary" id="newGame">新游戏</button>
+            <button class="action" id="peek">偷看</button>
+          </div>
+          <div class="control">
+            <div class="segmented" id="sizeControls">
+              <button class="chip active" data-size="4">2x2</button>
+              <button class="chip" data-size="16">4x4</button>
+              <button class="chip" data-size="36">6x6</button>
+            </div>
+          </div>
+        </section>
+      </header>
+
+      <section class="board-wrap" aria-label="翻翻乐棋盘">
+        <div id="board" class="board"></div>
+        <div id="winLayer" class="win-layer" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+          <div class="win-box">
+            <img class="win-image" src="res/nice.png" alt="" />
+            <h2 id="winTitle">真棒！</h2>
+            <p id="winText"></p>
+            <button class="action primary" id="playAgain">再来一局</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const CONFIG = {
+        assetCount: 17,
+        assetPattern: "assets/card-{id}.jpg?v=2",
+        assetDigits: 3,
+        flipBackDelay: 720,
+        winDialogDelay: 1000,
+        peekDuration: 2000,
+        minBoardSize: 120,
+        minPanelWidth: 180,
+        h5Breakpoint: 760,
+        layout: {
+          h5: {
+            maxGameWidth: 430,
+            maxPanelWidth: 430,
+            outerMargin: 0,
+            boardPadding: 12,
+            scaleBase: 360,
+          },
+          web: {
+            maxGameWidth: 920,
+            maxPanelWidth: 760,
+            outerMargin: 64,
+            boardPadding: 20,
+            scaleBase: 560,
+          },
+        },
+      };
+
+      const assets = Array.from({ length: CONFIG.assetCount }, (_, index) => {
+        const id = String(index + 1).padStart(CONFIG.assetDigits, "0");
+        return CONFIG.assetPattern.replace("{id}", id);
+      });
+      const placeholderImage =
+        "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+      const imageCache = new Set();
+      let allAssetsWarmupStarted = false;
+
+      const els = {
+        root: document.documentElement,
+        app: document.querySelector(".app"),
+        topbar: document.querySelector(".topbar"),
+        board: document.querySelector("#board"),
+        time: document.querySelector("#time"),
+        moves: document.querySelector("#moves"),
+        pairs: document.querySelector("#pairs"),
+        best: document.querySelector("#best"),
+        winLayer: document.querySelector("#winLayer"),
+        winText: document.querySelector("#winText"),
+        newGame: document.querySelector("#newGame"),
+        playAgain: document.querySelector("#playAgain"),
+        peek: document.querySelector("#peek"),
+        sizeControls: document.querySelector("#sizeControls"),
+      };
+
+      const state = {
+        size: 4,
+        cards: [],
+        opened: [],
+        locked: false,
+        moves: 0,
+        matched: 0,
+        startedAt: null,
+        timer: null,
+        elapsed: 0,
+        peeking: false,
+      };
+
+      function startGame() {
+        stopTimer();
+        Object.assign(state, {
+          cards: buildDeck(),
+          opened: [],
+          locked: false,
+          moves: 0,
+          matched: 0,
+          startedAt: null,
+          elapsed: 0,
+          peeking: false,
+        });
+        els.winLayer.classList.remove("show");
+        renderStats();
+        renderBoard();
+        warmDeckImages();
+        warmAllAssetsWhenIdle();
+        updateLayout();
+      }
+
+      function buildDeck() {
+        const pairCount = state.size / 2;
+        const pool = getImagePool(pairCount);
+        const deck = [];
+
+        for (let index = 0; index < pairCount; index += 1) {
+          const image = pool[index % pool.length];
+          deck.push({ id: `${image}-a`, pairId: image, image, matched: false });
+          deck.push({ id: `${image}-b`, pairId: image, image, matched: false });
+        }
+
+        return shuffle(deck);
+      }
+
+      function getImagePool(count) {
+        const shuffledAssets = shuffle(assets);
+        return Array.from({ length: count }, (_, index) => shuffledAssets[index % shuffledAssets.length]);
+      }
+
+      function renderBoard() {
+        const cols = Math.sqrt(state.size);
+        els.board.style.setProperty("--cols", cols);
+        els.board.innerHTML = state.cards.map(renderCard).join("");
+        els.board.querySelectorAll(".card-button").forEach((button) => {
+          button.addEventListener("click", () => flipCard(Number(button.closest(".card").dataset.index)));
+        });
+        updateLayout();
+      }
+
+      function renderCard(card, index) {
+        return `
+          <article class="card${card.matched ? " matched" : ""}" data-index="${index}">
+            <button class="card-button" aria-label="第 ${index + 1} 张牌">
+              <span class="card-face card-back"></span>
+              <span class="card-face card-front">
+                <img src="${placeholderImage}" data-src="${card.image}" alt="" draggable="false" decoding="async" />
+              </span>
+            </button>
+          </article>
+        `;
+      }
+
+      function flipCard(index) {
+        if (state.locked || state.peeking) return;
+
+        const card = state.cards[index];
+        const cardEl = getCardEl(index);
+        if (!card || card.matched || cardEl.classList.contains("flipped")) return;
+
+        ensureTimer();
+        loadCardImage(cardEl);
+        cardEl.classList.add("flipped");
+        state.opened.push(index);
+
+        if (state.opened.length === 2) checkOpenedCards();
+      }
+
+      function checkOpenedCards() {
+        state.moves += 1;
+        const [firstIndex, secondIndex] = state.opened;
+        const first = state.cards[firstIndex];
+        const second = state.cards[secondIndex];
+        renderStats();
+
+        if (first.pairId === second.pairId) {
+          markPairMatched(firstIndex, secondIndex);
+          return;
+        }
+
+        state.locked = true;
+        window.setTimeout(() => closePair(firstIndex, secondIndex), CONFIG.flipBackDelay);
+      }
+
+      function markPairMatched(firstIndex, secondIndex) {
+        state.cards[firstIndex].matched = true;
+        state.cards[secondIndex].matched = true;
+        state.matched += 1;
+        getCardEl(firstIndex).classList.add("matched");
+        getCardEl(secondIndex).classList.add("matched");
+        state.opened = [];
+
+        if (isGameComplete()) window.setTimeout(finishGame, CONFIG.winDialogDelay);
+      }
+
+      function closePair(firstIndex, secondIndex) {
+        getCardEl(firstIndex).classList.remove("flipped");
+        getCardEl(secondIndex).classList.remove("flipped");
+        state.opened = [];
+        state.locked = false;
+      }
+
+      function peekCards() {
+        if (state.locked || state.peeking) return;
+
+        ensureTimer();
+        state.peeking = true;
+        els.board.querySelectorAll(".card:not(.matched)").forEach((card) => {
+          loadCardImage(card);
+          card.classList.add("flipped");
+        });
+        window.setTimeout(() => {
+          els.board.querySelectorAll(".card:not(.matched)").forEach((card) => card.classList.remove("flipped"));
+          state.opened.forEach((index) => getCardEl(index).classList.add("flipped"));
+          state.peeking = false;
+        }, CONFIG.peekDuration);
+      }
+
+      function finishGame() {
+        stopTimer();
+        const currentBest = Number(localStorage.getItem(bestKey()));
+        if (!currentBest || state.moves < currentBest) {
+          localStorage.setItem(bestKey(), String(state.moves));
+        }
+        renderStats();
+        els.winText.textContent = `用时 ${formatTime(state.elapsed)}，共 ${state.moves} 步。`;
+        els.winLayer.classList.add("show");
+        celebrate();
+      }
+
+      function renderStats() {
+        els.time.textContent = formatTime(state.elapsed);
+        els.moves.textContent = state.moves;
+        els.pairs.textContent = `${state.matched}/${state.size / 2}`;
+        els.best.textContent = getBestLabel();
+      }
+
+      function ensureTimer() {
+        if (state.timer) return;
+        state.startedAt = Date.now() - state.elapsed * 1000;
+        state.timer = window.setInterval(() => {
+          state.elapsed = Math.floor((Date.now() - state.startedAt) / 1000);
+          renderStats();
+        }, 500);
+      }
+
+      function stopTimer() {
+        if (state.timer) window.clearInterval(state.timer);
+        state.timer = null;
+      }
+
+      function warmDeckImages() {
+        const deckImages = [...new Set(state.cards.map((card) => card.image))];
+        warmImages(deckImages);
+      }
+
+      function warmAllAssetsWhenIdle() {
+        if (allAssetsWarmupStarted) return;
+        allAssetsWarmupStarted = true;
+        runWhenIdle(() => warmImages(["res/nice.png", ...assets]));
+      }
+
+      function warmImages(images) {
+        images.forEach((src) => {
+          if (imageCache.has(src)) return;
+          const image = new Image();
+          image.decoding = "async";
+          image.src = src;
+          image.decode?.().catch(() => undefined);
+          imageCache.add(src);
+        });
+      }
+
+      function loadCardImage(cardEl) {
+        const image = cardEl.querySelector("img[data-src]");
+        if (!image || image.src.endsWith(image.dataset.src)) return;
+        image.src = image.dataset.src;
+        image.removeAttribute("data-src");
+      }
+
+      function runWhenIdle(callback) {
+        if ("requestIdleCallback" in window) {
+          window.requestIdleCallback(callback, { timeout: 1800 });
+          return;
+        }
+        window.setTimeout(callback, 800);
+      }
+
+      function registerServiceWorker() {
+        if (!("serviceWorker" in navigator) || !/^https?:$/.test(window.location.protocol)) return;
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch(() => undefined);
+        });
+      }
+
+      function updateLayout() {
+        const viewport = window.visualViewport;
+        const viewportWidth = viewport ? viewport.width : window.innerWidth;
+        const viewportHeight = viewport ? viewport.height : window.innerHeight;
+        const isWebLayout = viewportWidth >= CONFIG.h5Breakpoint;
+        const layout = isWebLayout ? CONFIG.layout.web : CONFIG.layout.h5;
+        const gameWidth = clamp(viewportWidth - layout.outerMargin, 220, layout.maxGameWidth);
+        setCssVar("--game-width", `${Math.floor(gameWidth)}px`);
+
+        const appStyles = window.getComputedStyle(els.app);
+        const appPaddingX = parseFloat(appStyles.paddingLeft) + parseFloat(appStyles.paddingRight);
+        const contentWidth = Math.max(CONFIG.minPanelWidth, gameWidth - appPaddingX);
+        const preferredPanelWidth = gameWidth - (isWebLayout ? 32 : 0);
+        const panelWidth = clamp(Math.min(contentWidth, preferredPanelWidth), CONFIG.minPanelWidth, layout.maxPanelWidth);
+
+        setCssVar("--panel-width", `${Math.floor(panelWidth)}px`);
+
+        measureBoardSize({ panelWidth, viewportHeight, layout });
+      }
+
+      function measureBoardSize({ panelWidth, viewportHeight, layout }) {
+        window.requestAnimationFrame(() => {
+          const boardSize = calculateBoardSize(panelWidth, viewportHeight, layout);
+          applyBoardMetrics(boardSize, layout.scaleBase);
+
+          window.requestAnimationFrame(() => {
+            const finalBoardSize = calculateBoardSize(panelWidth, viewportHeight, layout);
+            applyBoardMetrics(finalBoardSize, layout.scaleBase);
+          });
+        });
+      }
+
+      function calculateBoardSize(panelWidth, viewportHeight, layout) {
+        const appStyles = window.getComputedStyle(els.app);
+        const paddingY = parseFloat(appStyles.paddingTop) + parseFloat(appStyles.paddingBottom);
+        const gap = parseFloat(appStyles.rowGap || appStyles.gap) || 0;
+        const topbarHeight = els.topbar.getBoundingClientRect().height;
+        const availableHeight = viewportHeight - paddingY - gap - topbarHeight;
+        return Math.floor(Math.max(CONFIG.minBoardSize, Math.min(panelWidth - layout.boardPadding, availableHeight - layout.boardPadding)));
+      }
+
+      function applyBoardMetrics(boardSize, scaleBase) {
+        const uiScale = clamp(boardSize / scaleBase, 0.68, 1);
+        setCssVar("--ui-scale", uiScale.toFixed(3));
+        setCssVar("--board-size", `${boardSize}px`);
+      }
+
+      function bindEvents() {
+        els.newGame.addEventListener("click", startGame);
+        els.playAgain.addEventListener("click", startGame);
+        els.peek.addEventListener("click", peekCards);
+        els.sizeControls.addEventListener("click", changeSize);
+        window.addEventListener("resize", updateLayout);
+        window.visualViewport?.addEventListener("resize", updateLayout);
+        window.visualViewport?.addEventListener("scroll", updateLayout);
+        registerServiceWorker();
+      }
+
+      function changeSize(event) {
+        const button = event.target.closest("button[data-size]");
+        if (!button) return;
+
+        els.sizeControls.querySelectorAll(".chip").forEach((chip) => chip.classList.remove("active"));
+        button.classList.add("active");
+        state.size = Number(button.dataset.size);
+        startGame();
+      }
+
+      function celebrate() {
+        const palette = ["#d94e38", "#16756b", "#315f8d", "#d8a13a", "#28231d"];
+        for (let index = 0; index < 38; index += 1) {
+          const bit = document.createElement("span");
+          bit.className = "burst";
+          bit.style.left = `${45 + Math.random() * 10}%`;
+          bit.style.top = `${35 + Math.random() * 10}%`;
+          bit.style.background = palette[index % palette.length];
+          bit.style.setProperty("--dx", `${Math.random() * 360 - 180}px`);
+          bit.style.setProperty("--dy", `${Math.random() * 280 + 90}px`);
+          bit.style.animationDelay = `${Math.random() * 120}ms`;
+          document.body.appendChild(bit);
+          window.setTimeout(() => bit.remove(), 1100);
+        }
+      }
+
+      function getCardEl(index) {
+        return els.board.querySelector(`.card[data-index="${index}"]`);
+      }
+
+      function isGameComplete() {
+        return state.matched === state.size / 2;
+      }
+
+      function getBestLabel() {
+        const best = Number(localStorage.getItem(bestKey()));
+        return best ? `${best}步` : "--";
+      }
+
+      function bestKey() {
+        return `minerva-match-best-${state.size}`;
+      }
+
+      function formatTime(totalSeconds) {
+        const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+        const seconds = String(totalSeconds % 60).padStart(2, "0");
+        return `${minutes}:${seconds}`;
+      }
+
+      function shuffle(items) {
+        const next = [...items];
+        for (let index = next.length - 1; index > 0; index -= 1) {
+          const swapIndex = Math.floor(Math.random() * (index + 1));
+          [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
+        }
+        return next;
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function setCssVar(name, value) {
+        els.root.style.setProperty(name, value);
+      }
+
+      bindEvents();
+      startGame();
+    </script>
   </body>
 </html>
