@@ -1,4 +1,4 @@
-const CACHE_NAME = "minerva-match-v4";
+const CACHE_NAME = "minerva-match-v5";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -28,6 +28,19 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
 
+  if (isPageRequest(request)) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          return response;
+        })
+        .catch(() => caches.match(request).then((cached) => cached || caches.match("./index.html")))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
@@ -42,6 +55,10 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
+
+function isPageRequest(request) {
+  return request.mode === "navigate" || request.headers.get("accept")?.includes("text/html");
+}
 
 function shouldCache(request) {
   const url = new URL(request.url);

@@ -8,16 +8,16 @@ Open `index.html` directly in a browser.
 
 ## Assets
 
-Card images live in `assets/` and use three-digit names:
+Card images live in `assets/` and use three-digit JPG names:
 
 ```txt
-assets/card-001.png
-assets/card-002.png
-assets/card-003.png
+assets/card-001.jpg
+assets/card-002.jpg
+assets/card-003.jpg
 ```
 
 When adding or replacing cards, keep the sequence continuous and update
-`assetCount` in `index.html`.
+`assetCount` in `index.html`. Keep card images around 384-512px wide for smooth mobile loading.
 
 Recommended minimums:
 
