@@ -4,6 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Minerva Match</title>
+    <link rel="preload" href="res/logo.png" as="image" fetchpriority="high" />
+    <link rel="prefetch" href="res/nice.png" as="image" />
     <style>
       :root {
         color-scheme: light;
@@ -601,6 +603,10 @@
         const id = String(index + 1).padStart(CONFIG.assetDigits, "0");
         return CONFIG.assetPattern.replace("{id}", id);
       });
+      const placeholderImage =
+        "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+      const imageCache = new Set();
+      let allAssetsWarmupStarted = false;
 
       const els = {
         root: document.documentElement,
@@ -647,6 +653,8 @@
         els.winLayer.classList.remove("show");
         renderStats();
         renderBoard();
+        warmDeckImages();
+        warmAllAssetsWhenIdle();
         updateLayout();
       }
 
@@ -685,7 +693,7 @@
             <button class="card-button" aria-label="第 ${index + 1} 张牌">
               <span class="card-face card-back"></span>
               <span class="card-face card-front">
-                <img src="${card.image}" alt="" draggable="false" />
+                <img src="${placeholderImage}" data-src="${card.image}" alt="" draggable="false" decoding="async" />
               </span>
             </button>
           </article>
@@ -700,6 +708,7 @@
         if (!card || card.matched || cardEl.classList.contains("flipped")) return;
 
         ensureTimer();
+        loadCardImage(cardEl);
         cardEl.classList.add("flipped");
         state.opened.push(index);
 
@@ -745,7 +754,10 @@
 
         ensureTimer();
         state.peeking = true;
-        els.board.querySelectorAll(".card:not(.matched)").forEach((card) => card.classList.add("flipped"));
+        els.board.querySelectorAll(".card:not(.matched)").forEach((card) => {
+          loadCardImage(card);
+          card.classList.add("flipped");
+        });
         window.setTimeout(() => {
           els.board.querySelectorAll(".card:not(.matched)").forEach((card) => card.classList.remove("flipped"));
           state.opened.forEach((index) => getCardEl(index).classList.add("flipped"));
@@ -784,6 +796,50 @@
       function stopTimer() {
         if (state.timer) window.clearInterval(state.timer);
         state.timer = null;
+      }
+
+      function warmDeckImages() {
+        const deckImages = [...new Set(state.cards.map((card) => card.image))];
+        warmImages(deckImages);
+      }
+
+      function warmAllAssetsWhenIdle() {
+        if (allAssetsWarmupStarted) return;
+        allAssetsWarmupStarted = true;
+        runWhenIdle(() => warmImages(["res/nice.png", ...assets]));
+      }
+
+      function warmImages(images) {
+        images.forEach((src) => {
+          if (imageCache.has(src)) return;
+          const image = new Image();
+          image.decoding = "async";
+          image.src = src;
+          image.decode?.().catch(() => undefined);
+          imageCache.add(src);
+        });
+      }
+
+      function loadCardImage(cardEl) {
+        const image = cardEl.querySelector("img[data-src]");
+        if (!image || image.src.endsWith(image.dataset.src)) return;
+        image.src = image.dataset.src;
+        image.removeAttribute("data-src");
+      }
+
+      function runWhenIdle(callback) {
+        if ("requestIdleCallback" in window) {
+          window.requestIdleCallback(callback, { timeout: 1800 });
+          return;
+        }
+        window.setTimeout(callback, 800);
+      }
+
+      function registerServiceWorker() {
+        if (!("serviceWorker" in navigator) || !/^https?:$/.test(window.location.protocol)) return;
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch(() => undefined);
+        });
       }
 
       function updateLayout() {
@@ -841,6 +897,7 @@
         window.addEventListener("resize", updateLayout);
         window.visualViewport?.addEventListener("resize", updateLayout);
         window.visualViewport?.addEventListener("scroll", updateLayout);
+        registerServiceWorker();
       }
 
       function changeSize(event) {

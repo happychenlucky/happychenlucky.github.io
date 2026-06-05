@@ -27,5 +27,5 @@ Recommended minimums:
 
 UI images live in `res/`:
 
-- `logo.png`: game logo and card-back badge
+- `logo.png`: game logo and card-back badge. Keep it around 256-512px wide for a fast first screen.
 - `nice.png`: win dialog image
