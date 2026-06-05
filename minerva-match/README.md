@@ -29,3 +29,6 @@ UI images live in `res/`:
 
 - `logo.png`: game logo and card-back badge. Keep it around 256-512px wide for a fast first screen.
 - `nice.png`: win dialog image
+
+The `assets/card-*.png` files are temporary compatibility fallbacks for older cached pages.
+The current game loads `assets/card-*.jpg`.

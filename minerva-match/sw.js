@@ -1,4 +1,4 @@
-const CACHE_NAME = "minerva-match-v5";
+const CACHE_NAME = "minerva-match-v6";
 const APP_SHELL = [
   "./",
   "./index.html",
